@@ -91,7 +91,9 @@ namespace Consumption
         private IMyReactor ModBlock;
         private IMyInventory Inventory;
 
-        private int FuelCheckThreshold = 200;
+        private MyFixedPoint EmptySpace => ((Inventory.MaxVolume - Inventory.CurrentVolume) * 1000) - 1;
+
+        private int fuelCheckThreshold = 10;
 
         private bool refreshInventory = true;
         private List<IMyInventory> fuelTanks = new List<IMyInventory>();
@@ -143,10 +145,11 @@ namespace Consumption
             float powerRatio = ModBlock.CurrentOutput / ModBlock.MaxOutput;
             double consumptionAmount = MaxConsumptionPerTick * powerRatio;
 
+
             MyFixedPoint quanity = Inventory.GetItemAmount(DefinitionId);
 
             // refill fuel tanks if they are low because keens pulling system for reactors is extremely slow.
-            if (quanity < FuelCheckThreshold && quanity != 0)
+            if (quanity < fuelCheckThreshold && quanity != 0)
             {
                 // refreshes the tank inventories if new blocks have been added.
                 if (refreshInventory)
@@ -164,6 +167,8 @@ namespace Consumption
                     refreshInventory = false;
                 }
 
+                MyFixedPoint emptySpace = EmptySpace; // no reason to run calculations more than once
+
                 foreach (IMyInventory inv in fuelTanks)
                 {
                     if (inv == null) continue;
@@ -173,10 +178,10 @@ namespace Consumption
 
                     if (value == null) continue;
 
-                    if (value > FuelCheckThreshold)
+                    if (value > emptySpace)
                     {
-                        inv.RemoveItemsOfType(FuelCheckThreshold, PhysicalFuelObject, false);
-                        Inventory.AddItems(FuelCheckThreshold, PhysicalFuelObject);
+                        inv.RemoveItemsOfType(emptySpace, PhysicalFuelObject, false);
+                        Inventory.AddItems(emptySpace, PhysicalFuelObject);
                         break;
                     }
                     else if (value != 0)
