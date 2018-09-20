@@ -35,7 +35,7 @@
         <TypeId>Inventory</TypeId>
         <SubtypeId>hmindustrialtank_Large</SubtypeId>
       </Id>
-      <Size x="28.75" y="1.0" z="1.0" />
+      <Size x="287.5" y="1.0" z="1.0" />
       <InputConstraint Whitelist="true">
         <Entry>
           <TypeId>Ingot</TypeId>
