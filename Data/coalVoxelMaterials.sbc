@@ -1,0 +1,57 @@
+<?xml version="1.0"?>
+<Definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <VoxelMaterials>
+
+    <!-- Shale-->
+
+    <VoxelMaterial xsi:type="MyObjectBuilder_Dx11VoxelMaterialDefinition">
+      <Id>
+        <TypeId>VoxelMaterialDefinition</TypeId>
+        <SubtypeId>Petroleum_01</SubtypeId>
+      </Id>
+      <MaterialTypeName>Rock</MaterialTypeName>
+      <MinedOre>Shale</MinedOre>
+      <MinedOreRatio>5</MinedOreRatio>
+      <CanBeHarvested>true</CanBeHarvested>
+      <IsRare>true</IsRare>
+      <IsIndestructible>false</IsIndestructible>
+      <DamageRatio>0.2</DamageRatio>
+      <ParticleEffect>Collision_Meteor</ParticleEffect>
+      
+      <DiffuseXZ>Textures\Voxels\Stone_02_ForAxisXZ_de.dds</DiffuseXZ>
+      <NormalXZ>Textures\Voxels\Stone_02_ForAxisXZ_ns.dds</NormalXZ>
+      <DiffuseY>Textures\Voxels\Stone_02_ForAxisY_de.dds</DiffuseY>
+      <NormalY>Textures\Voxels\Stone_02_ForAxisY_ns.dds</NormalY>
+      <SpecularPower>24</SpecularPower>
+      <SpecularShininess>0.364</SpecularShininess>
+
+
+      <VoxelHandPreview>Textures\Voxels\Stone_02_Thumbnail.dds</VoxelHandPreview>
+      <ColorMetalXZnY>Textures\Voxels\Stone_02_ForAxisXZ_cm.dds</ColorMetalXZnY>
+      <ColorMetalY>Textures\Voxels\Stone_02_ForAxisY_cm.dds</ColorMetalY>
+
+      <NormalGlossXZnY>Textures\Voxels\Stone_02_ForAxisXZ_ng.dds</NormalGlossXZnY>
+      <NormalGlossY>Textures\Voxels\Stone_02_ForAxisY_ng.dds</NormalGlossY>
+
+      <SpawnChannels>
+        <Channel>5</Channel>
+      </SpawnChannels>
+
+      <Far3Distance>50000</Far3Distance>
+      <Far3Color>
+        <X>0.72</X>
+        <Y>0.94</Y>
+        <Z>1</Z>
+        <W>1.0</W>
+      </Far3Color>
+
+      <SpawnsFlora>true</SpawnsFlora>
+      <BiomeValueMin>200</BiomeValueMin>
+      <BiomeValueMax>200</BiomeValueMax>      
+	  
+    </VoxelMaterial>
+
+
+
+  </VoxelMaterials>
+</Definitions>

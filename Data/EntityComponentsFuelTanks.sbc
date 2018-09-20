@@ -1,0 +1,47 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <EntityComponents>
+
+    <EntityComponent xsi:type="MyObjectBuilder_InventoryComponentDefinition">
+      <Id>
+        <TypeId>Inventory</TypeId>
+        <SubtypeId>SB1x3x3cargo</SubtypeId>
+      </Id>
+      <Size x="1.15" y="1.0" z="1.0" />
+      <InputConstraint Whitelist="true">
+        <Entry>
+          <TypeId>Ingot</TypeId>
+          <SubtypeId>Diesel</SubtypeId>
+        </Entry>
+      </InputConstraint>
+    </EntityComponent>
+
+<EntityComponent xsi:type="MyObjectBuilder_InventoryComponentDefinition">
+      <Id>
+        <TypeId>Inventory</TypeId>
+        <SubtypeId>SB1x5x5cargo</SubtypeId>
+      </Id>
+      <Size x="2.53" y="1.0" z="1.0" />
+      <InputConstraint Whitelist="true">
+        <Entry>
+          <TypeId>Ingot</TypeId>
+          <SubtypeId>Diesel</SubtypeId>
+        </Entry>
+      </InputConstraint>
+    </EntityComponent>
+
+    <EntityComponent xsi:type="MyObjectBuilder_InventoryComponentDefinition">
+      <Id>
+        <TypeId>Inventory</TypeId>
+        <SubtypeId>hmindustrialtank_Large</SubtypeId>
+      </Id>
+      <Size x="28.75" y="1.0" z="1.0" />
+      <InputConstraint Whitelist="true">
+        <Entry>
+          <TypeId>Ingot</TypeId>
+          <SubtypeId>Diesel</SubtypeId>
+        </Entry>
+      </InputConstraint>
+    </EntityComponent>
+  </EntityComponents>
+</Definitions>

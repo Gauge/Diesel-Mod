@@ -1,0 +1,34 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <EntityContainers>
+	<Container>
+      <Id>
+        <TypeId>CargoContainer</TypeId>
+        <SubtypeId>SB1x3x3cargo</SubtypeId>
+      </Id>
+      <DefaultComponents>
+        <Component BuilderType="MyObjectBuilder_Inventory" SubtypeId="SB1x3x3cargo"/>
+      </DefaultComponents>
+    </Container>
+
+	<Container>
+      <Id>
+        <TypeId>CargoContainer</TypeId>
+        <SubtypeId>SB1x5x5cargo</SubtypeId>
+      </Id>
+      <DefaultComponents>
+        <Component BuilderType="MyObjectBuilder_Inventory" SubtypeId="SB1x5x5cargo"/>
+      </DefaultComponents>
+    </Container>
+
+    <Container>
+      <Id>
+        <TypeId>CargoContainer</TypeId>
+        <SubtypeId>hmindustrialtank_Large</SubtypeId>
+      </Id>
+      <DefaultComponents>
+        <Component BuilderType="MyObjectBuilder_Inventory" SubtypeId="hmindustrialtank_Large"/>
+      </DefaultComponents>
+    </Container>
+  </EntityContainers>
+</Definitions>

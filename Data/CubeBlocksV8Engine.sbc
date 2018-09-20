@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <CubeBlocks>
+
+<!--Start Small Ship Azimuth V8 Engine Region-->
+    <Definition xsi:type="MyObjectBuilder_ReactorDefinition">
+      <Id>
+        <TypeId>Reactor</TypeId>
+        <SubtypeId>V8Engine</SubtypeId>
+      </Id>
+      <DisplayName>Azimuth V8 Engine</DisplayName>
+      <Icon>Textures\GUI\Icons\Cubes\V8.dds</Icon>
+      <CubeSize>Small</CubeSize>
+      <BlockTopology>TriangleMesh</BlockTopology>
+      <Size x="3" y="3" z="4" />
+      <ModelOffset x="0" y="0" z="0" />
+      <Model>Models\Cubes\V8Engines\Engine.mwm</Model>
+      <Components>
+        <Component Subtype="SteelPlate" Count="20" />
+        <Component Subtype="Computer" Count="5" />
+        <Component Subtype="Construction" Count="20" />
+        <Component Subtype="MetalGrid" Count="4" />
+        <Component Subtype="LargeTube" Count="4" />
+        <Component Subtype="Motor" Count="4" />
+        <Component Subtype="SteelPlate" Count="15" />
+      </Components>
+      <CriticalComponent Subtype="Computer" Index="0" />
+      <BuildProgressModels>
+        <Model BuildPercentUpperBound="0.50" File="Models\Cubes\V8Engines\Engine.mwm" />
+        <Model BuildPercentUpperBound="1.00" File="Models\Cubes\V8Engines\Engine.mwm" />
+      </BuildProgressModels>
+      <BlockPairName>V8Engine</BlockPairName>
+      <MirroringY>Z</MirroringY>
+      <MirroringZ>Y</MirroringZ>
+      <EdgeType>Light</EdgeType>
+      <BuildTimeSeconds>32</BuildTimeSeconds>
+      <MaxPowerOutput>20</MaxPowerOutput>
+	  <ResourceSourceGroup>Reactors</ResourceSourceGroup>
+      <InventorySize>
+        <X>0.5</X>
+        <Y>1.0</Y>
+        <Z>1.0</Z>
+      </InventorySize>
+      <FuelId>
+        <TypeId>Ingot</TypeId>
+        <SubtypeId>Diesel</SubtypeId>
+      </FuelId>
+      <PrimarySound>ShipSmNuclearSm</PrimarySound>
+      <DamageEffectId>210</DamageEffectId>
+      <DamagedSound>ParticleReactor</DamagedSound>
+    </Definition>
+<!--End Small Ship Azimuth V8 Engine Region-->
+<!--Start Small Ship Azimuth Turbo V8 Engine Region-->
+    <Definition xsi:type="MyObjectBuilder_ReactorDefinition">
+      <Id>
+        <TypeId>Reactor</TypeId>
+        <SubtypeId>V8EngineTurbo</SubtypeId>
+      </Id>
+      <DisplayName>Azimuth V8 Engine Turbo</DisplayName>
+      <Icon>Textures\GUI\Icons\Cubes\V8.dds</Icon>>
+      <CubeSize>Small</CubeSize>
+      <BlockTopology>TriangleMesh</BlockTopology>
+      <Size x="3" y="3" z="3" />
+      <ModelOffset x="0" y="-0.05" z="0" />
+      <Model>Models\Cubes\V8Engines\Engine_Turbo.mwm</Model>
+      <Components>
+        <Component Subtype="SteelPlate" Count="40" />
+        <Component Subtype="Computer" Count="5" />
+        <Component Subtype="Construction" Count="20" />
+        <Component Subtype="MetalGrid" Count="8" />
+        <Component Subtype="LargeTube" Count="8" />
+        <Component Subtype="Motor" Count="8" />
+        <Component Subtype="SteelPlate" Count="25" />
+      </Components>
+      <CriticalComponent Subtype="Computer" Index="0" />
+      <BuildProgressModels>
+        <Model BuildPercentUpperBound="0.50" File="Models\Cubes\V8Engines\Engine_Turbo.mwm" />
+        <Model BuildPercentUpperBound="1.00" File="Models\Cubes\V8Engines\Engine_Turbo.mwm" />
+      </BuildProgressModels>
+      <BlockPairName>V8EngineTurbo</BlockPairName>
+      <MirroringY>Z</MirroringY>
+      <MirroringZ>Y</MirroringZ>
+      <EdgeType>Light</EdgeType>
+      <BuildTimeSeconds>32</BuildTimeSeconds>
+      <MaxPowerOutput>30</MaxPowerOutput>
+	<ResourceSourceGroup>Reactors</ResourceSourceGroup>
+      <InventorySize>
+        <X>0.5</X>
+        <Y>1.0</Y>
+        <Z>1.0</Z>
+      </InventorySize>
+      <FuelId>
+        <TypeId>Ingot</TypeId>
+        <SubtypeId>Diesel</SubtypeId>
+      </FuelId>
+      <PrimarySound>ShipSmNuclearSm</PrimarySound>
+      <DamageEffectId>210</DamageEffectId>
+      <DamagedSound>ParticleReactor</DamagedSound>
+    </Definition>
+  </CubeBlocks>
+</Definitions>
