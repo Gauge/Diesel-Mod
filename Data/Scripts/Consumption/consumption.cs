@@ -16,25 +16,24 @@ namespace Consumption
     [MySessionComponentDescriptor(MyUpdateOrder.BeforeSimulation)]
     public class Display : MySessionComponentBase
     {
-        public static readonly List<string> FuelStorage = new List<string>() { "V8Engine", "V8EngineTurbo", "SB1x3x3cargo", "SB1x5x5cargo", "hmindustrialtank_Large" };
+        private bool JustGotInCockpit = true;
+        private static readonly List<string> FuelStorage = new List<string>() { "V8Engine", "V8EngineTurbo", "SB1x3x3cargo", "SB1x5x5cargo", "hmindustrialtank_Large" };
         private List<IMySlimBlock> slims = new List<IMySlimBlock>();
-        int countdown = 0;
-
-        protected override void UnloadData()
-        {
-        }
 
         public override void UpdateBeforeSimulation()
         {
-            if (MyAPIGateway.Utilities.IsDedicated) return;
-            if (MyAPIGateway.Session == null) return;
+            if (MyAPIGateway.Utilities.IsDedicated || MyAPIGateway.Session == null) return;
 
             IMyCockpit cockpit = MyAPIGateway.Session.Player?.Controller?.ControlledEntity?.Entity as IMyCockpit;
-            if (cockpit == null) return;
-
-            if ((countdown--) <= 0)
+            if (cockpit == null)
             {
-                countdown = 300;
+                JustGotInCockpit = true;
+                return;
+            }
+
+            if (JustGotInCockpit)
+            {
+                JustGotInCockpit = false;
                 slims.Clear();
                 cockpit.CubeGrid.GetBlocks(slims, b => b.FatBlock != null && !b.FatBlock.BlockDefinition.IsNull() && FuelStorage.Contains(b.FatBlock.BlockDefinition.SubtypeId));
             }
@@ -46,21 +45,26 @@ namespace Consumption
 
             foreach (IMySlimBlock slim in slims)
             {
-                if (!slim.FatBlock.IsFunctional) continue;
+                IMyCubeBlock block = slim.FatBlock;
+                IMyReactor reactor = block as IMyReactor;
+                IMyInventory inv = block.GetInventory(0);
+                if (!block.IsFunctional || !block.IsWorking || inv == null) continue;
 
-                if (slim.FatBlock.BlockDefinition.SubtypeId == "V8Engine")
+                switch (block.BlockDefinition.SubtypeId)
                 {
-                    IMyReactor reactor = slim.FatBlock as IMyReactor;
-                    consumptionRate += 0.06666666666666666666666666666667d * (reactor.CurrentOutput / reactor.MaxOutput);
+                    case "V8Engine":
+                        consumptionRate += 0.06666666666666666666666666666667d * (reactor.CurrentOutput / reactor.MaxOutput);
+                        break;
+                    case "V8EngineTurbo":
+                        consumptionRate += 0.11666666666666666666666666666667d * (reactor.CurrentOutput / reactor.MaxOutput);
+                        break;
+                    case "hmdieselgenerator3_Large":
+                        consumptionRate += 0.05d * (reactor.CurrentOutput / reactor.MaxOutput);
+                        break;
+                    case "hmdieselgenerator1_Large":
+                        consumptionRate += 0.00833333333333333333333333333333d * (reactor.CurrentOutput / reactor.MaxOutput);
+                        break;
                 }
-                else if (slim.FatBlock.BlockDefinition.SubtypeId == "V8EngineTurbo")
-                {
-                    IMyReactor reactor = slim.FatBlock as IMyReactor;
-                    consumptionRate += 0.11666666666666666666666666666667d * (reactor.CurrentOutput / reactor.MaxOutput);
-                }
-
-                IMyInventory inv = slim.FatBlock.GetInventory(0);
-                if (inv == null) continue;
 
                 blockCount++;
                 total += inv.MaxVolume;
@@ -72,8 +76,6 @@ namespace Consumption
                 double percent = (((double)current * 1000d) / ((double)total * 1000d) * 100d);
                 double tick = (((double)current * 1000d) / consumptionRate);
 
-                //StringBuilder data = new StringBuilder($"Fuel: {percent.ToString("n0")}% {TimeSpan.FromMilliseconds((tick / 60d) * 1000d).ToString("g").Split('.')[0]}");
-
                 MyAPIGateway.Utilities.ShowNotification($"Fuel: {percent.ToString("n0")}% {TimeSpan.FromMilliseconds((tick / 60d) * 1000d).ToString("g").Split('.')[0]}", 1);
             }
         }
@@ -82,17 +84,20 @@ namespace Consumption
     public class Consumption : MyGameLogicComponent
     {
         public static MyObjectBuilder_PhysicalObject PhysicalFuelObject = null;
+        public static MyDefinitionId DefinitionId;
         public static readonly List<string> FuelStorage = new List<string>() { "SB1x3x3cargo", "SB1x5x5cargo", "hmindustrialtank_Large" };
         public double MaxConsumptionPerTick = 0;
 
         private IMyReactor ModBlock;
         private IMyInventory Inventory;
-        private float fuelSearch = 0;
 
-        public void initialInit(double rate)
-        {
-            MaxConsumptionPerTick = rate;
-        }
+        private int FuelCheckThreshold = 200;
+
+        private bool refreshInventory = true;
+        private List<IMyInventory> fuelTanks = new List<IMyInventory>();
+
+        // this is a hack cause keen doesn't have a better getblocks method.
+        List<IMySlimBlock> temp = new List<IMySlimBlock>();
 
         public override void Init(MyObjectBuilder_EntityBase objectBuilder)
         {
@@ -104,9 +109,22 @@ namespace Consumption
             {
                 PhysicalFuelObject = new MyObjectBuilder_PhysicalObject();
                 PhysicalFuelObject = new MyObjectBuilder_Ingot() { SubtypeName = "Diesel" };
+                DefinitionId = new MyDefinitionId(PhysicalFuelObject.TypeId, PhysicalFuelObject.SubtypeId);
             }
 
+            ModBlock.CubeGrid.OnBlockAdded += BlockAdded;
+
             NeedsUpdate = MyEntityUpdateEnum.BEFORE_NEXT_FRAME | MyEntityUpdateEnum.EACH_FRAME;
+        }
+
+        private void BlockAdded(IMySlimBlock block)
+        {
+            refreshInventory = true;
+        }
+
+        public override void Close()
+        {
+            ModBlock.CubeGrid.OnBlockAdded -= BlockAdded;
         }
 
         public override void UpdateOnceBeforeFrame()
@@ -116,49 +134,56 @@ namespace Consumption
 
         public override void UpdateBeforeSimulation()
         {
-            if (!MyAPIGateway.Multiplayer.IsServer) return;
-            if (ModBlock.CurrentOutput == 0) return;
-            if (!ModBlock.IsFunctional || !ModBlock.IsWorking) return;
-            if (PhysicalFuelObject == null) return;
+            if (!MyAPIGateway.Multiplayer.IsServer || 
+                PhysicalFuelObject == null || 
+                ModBlock.CurrentOutput == 0 || 
+                !ModBlock.IsFunctional || 
+                !ModBlock.IsWorking) return;
 
-            MyDefinitionId id = new MyDefinitionId(PhysicalFuelObject.TypeId, PhysicalFuelObject.SubtypeId);
             float powerRatio = ModBlock.CurrentOutput / ModBlock.MaxOutput;
             double consumptionAmount = MaxConsumptionPerTick * powerRatio;
 
-            MyFixedPoint quanity = Inventory.GetItemAmount(id);
+            MyFixedPoint quanity = Inventory.GetItemAmount(DefinitionId);
 
-            if (quanity < 200 && fuelSearch == 0)
+            // refill fuel tanks if they are low because keens pulling system for reactors is extremely slow.
+            if (quanity < FuelCheckThreshold && quanity != 0)
             {
-                List<IMySlimBlock> blocks = new List<IMySlimBlock>();
-                ModBlock.CubeGrid.GetBlocks(blocks, b => b.FatBlock != null && !b.FatBlock.BlockDefinition.IsNull() && FuelStorage.Contains(b.FatBlock.BlockDefinition.SubtypeId));
-
-                foreach (IMySlimBlock block in blocks)
+                // refreshes the tank inventories if new blocks have been added.
+                if (refreshInventory)
                 {
-                    IMyInventory inv = (block.FatBlock as IMyTerminalBlock).GetInventory(0);
+                    fuelTanks.Clear();
+                    ModBlock.CubeGrid.GetBlocks(temp, (b) =>
+                    {
+                        if (b.FatBlock != null && !b.FatBlock.BlockDefinition.IsNull() && FuelStorage.Contains(b.FatBlock.BlockDefinition.SubtypeId))
+                        {
+                            fuelTanks.Add(b.FatBlock.GetInventory(0));
+                        }
+                        return false;
+                    });
 
+                    refreshInventory = false;
+                }
+
+                foreach (IMyInventory inv in fuelTanks)
+                {
                     if (inv == null) continue;
-
                     if (!Inventory.IsConnectedTo(inv)) continue;
 
-                    MyFixedPoint value = inv.GetItemAmount(id);
+                    MyFixedPoint value = inv.GetItemAmount(DefinitionId);
 
                     if (value == null) continue;
 
-                    if (value > 200)
+                    if (value > FuelCheckThreshold)
                     {
-                        inv.RemoveItemsOfType(200, PhysicalFuelObject, false);
-                        Inventory.AddItems(200, PhysicalFuelObject);
+                        inv.RemoveItemsOfType(FuelCheckThreshold, PhysicalFuelObject, false);
+                        Inventory.AddItems(FuelCheckThreshold, PhysicalFuelObject);
                         break;
                     }
-                    else if (value < 200)
+                    else if (value != 0)
                     {
                         inv.RemoveItemsOfType(value, PhysicalFuelObject, false);
                         Inventory.AddItems(value, PhysicalFuelObject);
-
-                        if (Inventory.ContainItems(200, PhysicalFuelObject))
-                        {
-                            break;
-                        }
+                        break;
                     }
                 }
             }
@@ -166,11 +191,6 @@ namespace Consumption
             if (quanity > (MyFixedPoint)consumptionAmount)
             {
                 Inventory.RemoveItemsOfType((MyFixedPoint)consumptionAmount, PhysicalFuelObject, false);
-            }
-
-            if (fuelSearch > 0)
-            {
-                fuelSearch--;
             }
         }
     }
@@ -180,7 +200,7 @@ namespace Consumption
     {
         public V8Engine()
         {
-            initialInit(4d);
+            MaxConsumptionPerTick = 4d;
         }
     }
 
@@ -189,7 +209,7 @@ namespace Consumption
     {
         public V8EngineTurbo()
         {
-            initialInit(7d);
+            MaxConsumptionPerTick = 7d;
         }
     }
 
@@ -198,16 +218,16 @@ namespace Consumption
     {
         public hmdieselgenerator3_Large()
         {
-            initialInit(3d);
+            MaxConsumptionPerTick = 3d;
         }
     }
-    
+
     [MyEntityComponentDescriptor(typeof(MyObjectBuilder_Reactor), false, "hmdieselgenerator1_Large")]
     public class hmdieselgenerator1_Large : Consumption
     {
         public hmdieselgenerator1_Large()
         {
-            initialInit(0.5d);
+            MaxConsumptionPerTick = 0.5d;
         }
     }
 
@@ -228,7 +248,7 @@ namespace Consumption
 
         public override void UpdateOnceBeforeFrame()
         {
-            MyInventory inv = ((MyInventory)Entity.GetInventory(0));
+            MyInventory inv = (MyInventory)Entity.GetInventory(0);
 
             if (inv == null) return;
 
@@ -243,9 +263,8 @@ namespace Consumption
             {
                 inv.Constraint.Add(new MyDefinitionId(PhysicalFuelObject.TypeId, PhysicalFuelObject.SubtypeId));
             }
-            else
-            {
-            }
+
+            NeedsUpdate = MyEntityUpdateEnum.NONE;
         }
     }
 
